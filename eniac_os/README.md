@@ -28,7 +28,7 @@ Windows:
 ## Try the example
     ./build/eniac_os examples/addition.epr
 
-The optional file argument loads and executes the example, then opens the monitor.
+The optional file argument loads the example, then opens the monitor. Use the run command to execute it.
 
 ## Scope
 This project emulates a simplified decimal accumulator machine and a modern operator workflow. It does not reproduce ENIAC's full plugboard wiring, function tables, pulse timing, physical accumulators, or original programming procedures with electrical fidelity. See docs/HISTORICAL_SCOPE.md.
