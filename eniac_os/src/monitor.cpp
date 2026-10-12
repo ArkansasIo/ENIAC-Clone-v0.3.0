@@ -3,6 +3,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <utility>
 
 namespace eniac_os {
 Monitor::Monitor(Machine& machine, std::istream& input, std::ostream& output)
