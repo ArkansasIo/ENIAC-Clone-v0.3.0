@@ -1,0 +1,9 @@
+# ENIAC Program OS demo: arithmetic on accumulator A0
+# Operands are signed decimal integers.
+LOAD 123
+ADD 456
+PRINT
+SUB 79
+PRINT
+STORE 1
+HALT
