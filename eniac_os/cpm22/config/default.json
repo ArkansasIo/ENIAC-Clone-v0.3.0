@@ -1,0 +1,15 @@
+{
+  "system_name": "ENIAC CP/M-style OS",
+  "version": "0.1.0",
+  "default_drive": "A",
+  "drive_letters": ["A", "B", "C", "D"],
+  "user_areas": 16,
+  "filename_format": "8.3",
+  "disk_root": "./disk",
+  "program_extension": ".EPR",
+  "max_program_steps": 100000,
+  "compatibility": {
+    "cp_m_2_2_binary_compatible": false,
+    "historical_eniac_os": false
+  }
+}

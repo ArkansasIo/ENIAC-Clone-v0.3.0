@@ -1,0 +1,6 @@
+; ENIAC program example for the CP/M-style shell
+; Copy this file to disk/A/USER00/HELLO.EPR, then enter RUN HELLO.EPR.
+LOAD 2
+ADD 3
+PRINT
+HALT
