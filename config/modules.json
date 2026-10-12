@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "product": "FLOPPY 5.2",
+  "modules": [
+    {"id":"core","children":["types","memory","config"]},
+    {"id":"disk","children":["geometry","image","filesystem"]},
+    {"id":"boot","children":["bios","loader","screen"]},
+    {"id":"sdk","children":["statements","arrays","classes","types"]},
+    {"id":"devtools","children":["cli","editor","diagnostics","build"]}
+  ]
+}
