@@ -13,7 +13,7 @@ The environment has 64 KiB of RAM (addresses 0000–FFFF) and a separate CP/M-st
 - `MWRITE address count file`: write RAM range to disk.
 - `MEXPORT file address count`: export table as CSV.
 - `MIMPORT file`: import CSV byte cells into RAM using addresses from the CSV.
-- `MEDIT [address]`: enter interactive cell editor.
+- `MEDIT [address]`: enter interactive cell editor. Inside it, `LOAD file address`, `READ file address count`, `SAVE file address count`, `WRITE address count file`, `CSVOUT file address count`, and `CSVIN file` are also available.
 - `OPTIONS`: configure display options.
 
 ## Interactive editor
