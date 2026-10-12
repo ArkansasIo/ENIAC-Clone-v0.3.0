@@ -3,6 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include <string_view>
+#include <utility>
 
 namespace eniac_os {
 std::string opcode_name(OpCode op) {
