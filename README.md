@@ -32,3 +32,19 @@ ctest --test-dir build -C Release --output-on-failure
 
 ## Fidelity boundary
 This is an educational architecture model, not a cycle-accurate electrical simulation. Its operation sequence is a modern software convenience. Historical ENIAC behavior should be implemented only where supported by reliable technical or archival references.
+
+
+## Standalone ENIAC Program OS subproject
+
+The repository now also contains an isolated modern operator/program-control prototype under [eniac_os/](eniac_os/). It has its own CMake project, C++23 source, tests, EPR example programs, JSON configuration sample, build script, and design/operator documentation.
+
+Build it independently:
+
+```sh
+cmake -S eniac_os -B eniac_os/build
+cmake --build eniac_os/build
+ctest --test-dir eniac_os/build --output-on-failure
+./eniac_os/build/eniac_os eniac_os/examples/addition.epr
+```
+
+The monitor commands include help, load, list, step, run, regs, status, reset, and quit. This is an educational software layer around a simplified ENIAC-inspired machine, not a historically documented operating system from the original ENIAC.
