@@ -2,6 +2,7 @@
 #include "eniac_os/program.hpp"
 #include <sstream>
 #include <stdexcept>
+#include <utility>
 
 namespace eniac_os {
 Machine::Machine(Output output) : output_(std::move(output)) {}
