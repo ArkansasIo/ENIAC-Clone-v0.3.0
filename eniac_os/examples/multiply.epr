@@ -1,0 +1,7 @@
+# Multiply a value using the arithmetic unit abstraction.
+LOAD 25
+MUL 4
+PRINT
+DIV 2
+PRINT
+HALT
