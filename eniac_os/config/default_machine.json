@@ -1,0 +1,11 @@
+{
+  "name": "ENIAC Program OS Educational Machine",
+  "version": "0.1.0",
+  "numeric_model": "signed 64-bit integer decimal abstraction",
+  "accumulator_count": 20,
+  "program_counter": "zero-based instruction index",
+  "default_step_limit": 100000,
+  "historical_fidelity": "educational abstraction, not cycle-accurate",
+  "disk_io": false,
+  "network_io": false
+}
