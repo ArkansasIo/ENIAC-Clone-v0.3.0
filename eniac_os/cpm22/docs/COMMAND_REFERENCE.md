@@ -1,24 +1,24 @@
 # Command reference
-
-Commands are case-insensitive. Files use CP/M-style uppercase 8.3 names; wildcard matching is available in DIR.
+Commands are case-insensitive. Disk filenames use uppercase CP/M-style 8.3 names. Addresses/counts accept decimal or 0x-prefixed hex.
 
 | Command | Behavior |
 |---|---|
-| `DIR [pattern]` | List files in the current drive/user area; default is `*.*`. |
-| `TYPE file` | Print file contents as text. |
-| `ERA file` | Delete one file. Wildcard deletion is intentionally not implemented. |
-| `REN new=old` | Rename a file within the same drive. Destination must not exist. |
-| `COPY source destination` | Copy a file; destination must not exist. |
-| `USER n` | Select user area 0–15. |
-| `A:` … `D:` | Select a virtual drive. |
-| `RUN file.EPR` | Parse and execute an ENIAC program using the existing simulator. |
-| `STAT` | Show file count and byte total for the current area. |
-| `VER` | Print the environment version and compatibility disclaimer. |
-| `ECHO text` | Print text. |
-| `CLS` | Clear a terminal that supports ANSI escape sequences. |
-| `HELP`, `?` | Show supported commands. |
-| `EXIT`, `BYE`, `QUIT` | Leave the shell. |
+| DIR [pattern], TYPE file | List or display files |
+| ERA file, REN new=old, COPY src dst | File operations |
+| USER n, A:–D: | Select user area or drive |
+| RUN file.EPR | Execute ENIAC simulator program |
+| MEM [address] [rows] | View 64 KiB memory table |
+| MPEEK address | Read byte |
+| MPOKE address value | Write byte |
+| MFILL address count value | Fill RAM range |
+| MSAVE file address count | Save RAM range as binary |
+| MLOAD file address | Load binary file to RAM |
+| MREAD file address count | Read file prefix into RAM |
+| MWRITE address count file | Save RAM range to disk |
+| MEXPORT file address count | Export CSV table |
+| MIMPORT file | Import CSV byte cells |
+| MEDIT [address] | Interactive memory editor |
+| OPTIONS | Table display settings |
+| STAT, VER, ECHO, CLS, HELP, EXIT | General shell commands |
 
-## Intentional differences
-
-This implementation does not load `.COM` binaries, run 8080 machine code, parse CP/M command-tail memory, or implement CP/M's original FCB-based BDOS function numbers. RUN is for the ENIAC simulator's `.EPR` instruction format only.
+MEDIT commands: SHOW [address] [rows], CELL address byte, FILL address count byte, OPTIONS, HELP, EXIT.

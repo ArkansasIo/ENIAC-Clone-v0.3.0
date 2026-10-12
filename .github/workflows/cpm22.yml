@@ -1,27 +1,15 @@
 name: ENIAC CP/M-style OS
 on:
   push:
-    paths:
-      - "eniac_os/cpm22/**"
-      - "eniac_os/include/**"
-      - "eniac_os/src/**"
-      - ".github/workflows/cpm22.yml"
+    paths: ["eniac_os/cpm22/**", "eniac_os/include/**", "eniac_os/src/**", ".github/workflows/cpm22.yml"]
   pull_request:
-    paths:
-      - "eniac_os/cpm22/**"
-      - "eniac_os/include/**"
-      - "eniac_os/src/**"
-      - ".github/workflows/cpm22.yml"
+    paths: ["eniac_os/cpm22/**", "eniac_os/include/**", "eniac_os/src/**", ".github/workflows/cpm22.yml"]
   workflow_dispatch:
-
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Configure
-        run: cmake -S eniac_os/cpm22 -B eniac_os/cpm22/build -DCMAKE_BUILD_TYPE=Release
-      - name: Build
-        run: cmake --build eniac_os/cpm22/build --parallel 2
-      - name: Test
-        run: ctest --test-dir eniac_os/cpm22/build --output-on-failure
+      - run: cmake -S eniac_os/cpm22 -B eniac_os/cpm22/build -DCMAKE_BUILD_TYPE=Release
+      - run: cmake --build eniac_os/cpm22/build --parallel 2
+      - run: ctest --test-dir eniac_os/cpm22/build --output-on-failure

@@ -1,18 +1,14 @@
 # Roadmap
-
-## Implemented in 0.1
-- CCP-like interactive command interpreter.
-- BDOS-like file service facade and BIOS-like console adapter.
-- Virtual drives A–D, user areas 0–15, safe 8.3 names.
-- DIR, TYPE, ERA, REN, COPY, USER, drive switching, STAT, VER, ECHO, CLS, HELP, EXIT.
-- RUN for ENIAC `.EPR` programs.
-- CMake build and storage tests.
-
-## Possible next milestones
-- Add a CP/M-style line editor and transient command scripts.
-- Add directory wildcards to ERA only after confirmation prompts and dedicated tests.
-- Add disk usage/capacity reporting with a documented virtual allocation model.
-- Add a debugger command for ENIAC program stepping and accumulator inspection.
-- Add a text editor that saves through the BDOS facade.
-- Add a binary disk-image format only with explicit geometry and serialization tests.
-- Consider an 8080 emulator as a separate optional module before attempting .COM compatibility.
+## Implemented in 0.2
+- CCP/BDOS/BIOS-inspired shell and virtual drives A–D, user areas 0–15.
+- Safe 8.3 file names and DIR/TYPE/ERA/REN/COPY.
+- 64 KiB RAM with checked read/write/fill/snapshot/restore.
+- Hex/ASCII spreadsheet-style table and interactive cell editor.
+- Binary memory load/save/read/write, CSV import/export.
+- Configurable row width, ASCII column, ANSI color and headers; persistent options.
+- Automated storage and memory tests.
+## Next
+- Add a native GUI grid with mouse and keyboard cell navigation.
+- Add disk geometry and a documented floppy image format.
+- Add optional Intel 8080 emulation before native .COM compatibility.
+- Add memory breakpoints and debugger controls.

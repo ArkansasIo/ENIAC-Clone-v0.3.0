@@ -1,15 +1,9 @@
 {
-  "system_name": "ENIAC CP/M-style OS",
-  "version": "0.1.0",
-  "default_drive": "A",
-  "drive_letters": ["A", "B", "C", "D"],
-  "user_areas": 16,
-  "filename_format": "8.3",
-  "disk_root": "./disk",
-  "program_extension": ".EPR",
-  "max_program_steps": 100000,
-  "compatibility": {
-    "cp_m_2_2_binary_compatible": false,
-    "historical_eniac_os": false
-  }
+ "system_name":"ENIAC CP/M-style OS","version":"0.2.0","default_drive":"A",
+ "drive_letters":["A","B","C","D"],"user_areas":16,"filename_format":"8.3",
+ "disk_root":"./disk","ram_bytes":65536,
+ "memory_table":{"default_bytes_per_row":16,"show_ascii":true,"color":"green","show_header":true,"settings_file":"disk/settings/memory.ini"},
+ "memory_files":{"raw_extension":".BIN","table_extension":".CSV","binary_save_load":true,"csv_import_export":true},
+ "program_extension":".EPR","max_program_steps":100000,
+ "compatibility":{"cp_m_2_2_binary_compatible":false,"historical_eniac_os":false}
 }

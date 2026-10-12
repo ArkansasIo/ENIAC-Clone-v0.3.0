@@ -1,154 +1,39 @@
 #include "cpm22/ccp.hpp"
 #include "eniac_os/program.hpp"
-#include <algorithm>
 #include <cctype>
-#include <filesystem>
 #include <iomanip>
 #include <sstream>
 #include <stdexcept>
-#include <string>
-#include <utility>
-
-namespace cpm22 {
-namespace {
-std::string upper(std::string value) {
-    for (char& ch : value) ch = static_cast<char>(std::toupper(static_cast<unsigned char>(ch)));
-    return value;
+#include <vector>
+namespace cpm22 { namespace {
+std::string upper(std::string s){for(char&c:s)c=static_cast<char>(std::toupper(static_cast<unsigned char>(c)));return s;}
+std::string trim(std::string s){auto a=s.find_first_not_of(" \t\r\n");if(a==s.npos)return {};return s.substr(a,s.find_last_not_of(" \t\r\n")-a+1);}
+bool num(std::string s,std::size_t&v){try{if(s.empty())return false;std::size_t n=0;int b=s.size()>2&&s[0]=='0'&&(s[1]=='x'||s[1]=='X')?16:10;auto x=std::stoull(s,&n,b);if(n!=s.size())return false;v=static_cast<std::size_t>(x);return true;}catch(...){return false;}}
+std::string hx(std::size_t n,int w){std::ostringstream o;o<<std::uppercase<<std::hex<<std::setw(w)<<std::setfill('0')<<n;return o.str();}
 }
-std::string trim(std::string value) {
-    const auto first = value.find_first_not_of(" \t\r\n");
-    if (first == std::string::npos) return {};
-    return value.substr(first, value.find_last_not_of(" \t\r\n") - first + 1);
+Ccp::Ccp(Bdos&d,BiosConsole&b,eniac_os::Machine&m,Memory&mem,MemoryEditor&e):bdos_(d),bios_(b),machine_(m),memory_(mem),editor_(e){}
+std::string Ccp::prompt()const{return std::string(1,bdos_.disk().drive())+"> ";}
+void Ccp::help(){bios_.write("DIR [pattern], TYPE file, ERA file, REN new=old, COPY src dst, USER 0..15, A:..D:, RUN file.EPR\nMEM [address] [rows], MPEEK address, MPOKE address byte, MFILL address count byte\nMSAVE file address count, MLOAD file address, MREAD file address count, MWRITE address count file\nMEXPORT file address count, MIMPORT file, MEDIT [address], OPTIONS, STAT, VER, ECHO, CLS, EXIT\nAddresses/values accept decimal or 0x-prefixed hex. Type MEDIT then HELP for editor controls.\n");}
+void Ccp::directory(const std::string&p){auto entries=bdos_.directory(p.empty()?"*.*":p);std::uintmax_t total=0;bios_.write("Directory "+std::string(1,bdos_.disk().drive())+": user "+std::to_string(bdos_.disk().user())+"\n");for(auto&e:entries){std::ostringstream o;o<<std::left<<std::setw(12)<<e.name<<std::right<<std::setw(8)<<e.bytes<<" bytes\n";bios_.write(o.str());total+=e.bytes;}bios_.write(std::to_string(entries.size())+" file(s), "+std::to_string(total)+" bytes\n");}
+void Ccp::run_program(const std::string&n){std::string e;auto s=bdos_.read_file(n,e);if(!s){bios_.write(e+"\n");return;}std::istringstream in(*s);auto p=eniac_os::parse_program(in,n);if(!p.ok()){for(auto&x:p.errors)bios_.write("Line "+std::to_string(x.line)+": "+x.message+"\n");return;}machine_.load(std::move(p.program));bios_.write("Loaded "+std::to_string(machine_.program().instructions.size())+" instruction(s).\n");bios_.write(machine_.run().message+"\n");}
+int Ccp::loop(){bios_.write("ENIAC CP/M 2.2-style OS 0.2 — 64 KiB RAM and memory spreadsheet editor\nEducational CP/M-inspired environment; not Digital Research CP/M. Type HELP.\n");std::string l;while(bios_.write(prompt()),bios_.read_line(l))if(!execute_line(l))break;return 0;}
+bool Ccp::execute_line(const std::string&raw){auto line=trim(raw);if(line.empty())return true;auto p=line.find_first_of(" \t");auto cmd=upper(line.substr(0,p));auto args=p==line.npos?"":trim(line.substr(p+1));std::string err;
+if(cmd=="EXIT"||cmd=="BYE"||cmd=="QUIT")return false;if(cmd=="HELP"||cmd=="?"){help();return true;}if(cmd=="VER"){bios_.write("ENIAC CP/M-style OS 0.2 (not CP/M binary-compatible)\n");return true;}if(cmd=="CLS"){bios_.clear_screen();return true;}if(cmd=="ECHO"){bios_.write(args+"\n");return true;}if(cmd=="DIR"){directory(args);return true;}
+if(cmd=="USER"){try{std::size_t n=0;auto u=std::stoul(args,&n);if(n!=args.size()||!bdos_.set_user(static_cast<unsigned>(u),err))throw std::invalid_argument("user");bios_.write("User area selected.\n");}catch(...){bios_.write(err.empty()?"Usage: USER 0..15\n":err+"\n");}return true;}
+if(cmd.size()==2&&cmd[1]==':'){bios_.write(bdos_.set_drive(cmd[0],err)?"Drive selected.\n":err+"\n");return true;}
+if(cmd=="TYPE"){auto s=bdos_.read_file(args,err);if(s){bios_.write(*s);if(s->empty()||s->back()!='\n')bios_.newline();}else bios_.write(err+"\n");return true;}
+if(cmd=="ERA"||cmd=="DEL"){bios_.write(bdos_.delete_file(args,err)?"File erased.\n":err+"\n");return true;}
+if(cmd=="REN"){auto eq=args.find('=');if(eq==args.npos){bios_.write("Usage: REN new=old\n");return true;}bios_.write(bdos_.rename_file(trim(args.substr(eq+1)),trim(args.substr(0,eq)),err)?"File renamed.\n":err+"\n");return true;}
+if(cmd=="COPY"){std::istringstream in(args);std::string a,b,x;if(!(in>>a>>b)||in>>x){bios_.write("Usage: COPY source destination\n");return true;}bios_.write(bdos_.copy_file(a,b,err)?"File copied.\n":err+"\n");return true;}
+if(cmd=="RUN"){run_program(args);return true;}if(cmd=="OPTIONS"){editor_.options();return true;}
+if(cmd=="MEM"||cmd=="MEMORY"){std::istringstream in(args);std::string a,r;in>>a>>r;std::size_t at=0,n=16;if((!a.empty()&&!num(a,at))||at>=Memory::capacity||(!r.empty()&&!num(r,n))||n==0){bios_.write("Usage: MEM [address] [rows]\n");return true;}editor_.display(at,n);return true;}
+if(cmd=="MEDIT"){std::size_t at=0;if(!args.empty()&&!num(args,at)){bios_.write("Usage: MEDIT [address]\n");return true;}editor_.edit(at);return true;}
+if(cmd=="MPEEK"||cmd=="MPOKE"){std::istringstream in(args);std::string a,v,x;in>>a>>v>>x;std::size_t at{},val{};if(!num(a,at)||at>=Memory::capacity){bios_.write("Invalid RAM address.\n");return true;}if(cmd=="MPEEK"){if(!v.empty()){bios_.write("Usage: MPEEK address\n");return true;}auto b=*memory_.read(at);bios_.write(hx(at,4)+": "+hx(b,2)+" ("+std::to_string(b)+")\n");}else{if(v.empty()||!x.empty()||!num(v,val)||val>255){bios_.write("Usage: MPOKE address byte\n");return true;}memory_.write(at,static_cast<std::uint8_t>(val));bios_.write("Cell "+hx(at,4)+" set to "+hx(val,2)+".\n");}return true;}
+if(cmd=="MFILL"){std::istringstream in(args);std::string a,n,v,x;in>>a>>n>>v>>x;std::size_t at{},count{},val{};if(!x.empty()||!num(a,at)||!num(n,count)||!num(v,val)||val>255||!memory_.fill(at,count,static_cast<std::uint8_t>(val))){bios_.write("Usage: MFILL address count byte\n");return true;}bios_.write("Memory range filled.\n");return true;}
+if(cmd=="MSAVE"||cmd=="MLOAD"||cmd=="MREAD"||cmd=="MWRITE"){std::istringstream in(args);std::vector<std::string> t;std::string s;while(in>>s)t.push_back(s);std::string file;std::size_t at{},count{};bool load=cmd=="MLOAD"||cmd=="MREAD";if(cmd=="MSAVE"||cmd=="MLOAD"){if(t.size()!=(cmd=="MSAVE"?3U:2U)){bios_.write(cmd=="MSAVE"?"Usage: MSAVE file address count\n":"Usage: MLOAD file address\n");return true;}file=t[0];if(!num(t[1],at)||(cmd=="MSAVE"&&!num(t[2],count))){bios_.write("Invalid address/count.\n");return true;}}else if(cmd=="MREAD"){if(t.size()!=3||!num(t[1],at)||!num(t[2],count)){bios_.write("Usage: MREAD file address count\n");return true;}file=t[0];}else{if(t.size()!=3||!num(t[0],at)||!num(t[1],count)){bios_.write("Usage: MWRITE address count file\n");return true;}file=t[2];}
+if(load){auto data=bdos_.read_file(file,err);if(!data){bios_.write(err+"\n");return true;}if(cmd=="MREAD"){if(count>data->size()){bios_.write("Count exceeds file size.\n");return true;}data->resize(count);}std::vector<std::uint8_t>b(data->begin(),data->end());if(!memory_.restore(at,b)){bios_.write("File does not fit in RAM.\n");return true;}bios_.write("Loaded "+std::to_string(b.size())+" byte(s).\n");}else{auto b=memory_.snapshot(at,count);if(!b){bios_.write("Range exceeds RAM.\n");return true;}std::string data(b->begin(),b->end());bios_.write(bdos_.write_file(file,data,err)?"Saved "+std::to_string(count)+" byte(s).\n":err+"\n");}return true;}
+if(cmd=="MEXPORT"){std::istringstream in(args);std::string f,a,n,x;in>>f>>a>>n>>x;std::size_t at{},count{};if(!x.empty()||!num(a,at)||!num(n,count)){bios_.write("Usage: MEXPORT file address count\n");return true;}bios_.write(editor_.export_csv(f,at,count,err)?"CSV exported.\n":err+"\n");return true;}
+if(cmd=="MIMPORT"){if(args.empty()){bios_.write("Usage: MIMPORT file.csv\n");return true;}bios_.write(editor_.import_csv(args,err)?"CSV imported.\n":err+"\n");return true;}
+if(cmd=="STAT"){auto es=bdos_.directory();std::uintmax_t n=0;for(auto&e:es)n+=e.bytes;bios_.write(std::to_string(es.size())+" file(s), "+std::to_string(n)+" bytes.\n");return true;}
+bios_.write("Bad command or filename: "+cmd+" (type HELP)\n");return true;}
 }
-}
-Ccp::Ccp(Bdos& bdos, BiosConsole& bios, eniac_os::Machine& machine)
-    : bdos_(bdos), bios_(bios), machine_(machine) {}
-std::string Ccp::prompt() const {
-    return std::string(1, bdos_.disk().drive()) + "> ";
-}
-void Ccp::help() {
-    bios_.write("ENIAC CP/M 2.2-style command set\n"
-                "  DIR [pattern]       list files (8.3 names; wildcards supported)\n"
-                "  TYPE file           display a text file\n"
-                "  ERA file            erase a file\n"
-                "  REN new=old         rename a file\n"
-                "  COPY source dest    copy a file\n"
-                "  USER 0..15          select a user area\n"
-                "  A: B: C: D:         select virtual drive\n"
-                "  RUN file.EPR        run an ENIAC program file\n"
-                "  STAT                show current drive/user and file totals\n"
-                "  VER, ECHO, CLS, HELP, EXIT\n"
-                "Drive data is stored beneath ./disk/<drive>/USERxx.\n");
-}
-void Ccp::directory(const std::string& pattern) {
-    const auto entries = bdos_.directory(pattern.empty() ? "*.*" : pattern);
-    std::uintmax_t total = 0;
-    bios_.write("Directory of " + std::string(1, bdos_.disk().drive()) + ": user " +
-                std::to_string(bdos_.disk().user()) + "\n");
-    for (const auto& entry : entries) {
-        std::ostringstream row;
-        row << std::left << std::setw(12) << entry.name << std::right << std::setw(8) << entry.bytes << " bytes\n";
-        bios_.write(row.str()); total += entry.bytes;
-    }
-    bios_.write(std::to_string(entries.size()) + " file(s), " + std::to_string(total) + " bytes\n");
-}
-void Ccp::run_program(const std::string& name) {
-    std::string error;
-    auto source = bdos_.read_file(name, error);
-    if (!source) { bios_.write(error + "\n"); return; }
-    std::istringstream input(*source);
-    auto parsed = eniac_os::parse_program(input, name);
-    if (!parsed.ok()) {
-        for (const auto& issue : parsed.errors)
-            bios_.write("Program line " + std::to_string(issue.line) + ": " + issue.message + "\n");
-        return;
-    }
-    machine_.load(std::move(parsed.program));
-    bios_.write("Loaded " + std::to_string(machine_.program().instructions.size()) + " instruction(s).\n");
-    const auto result = machine_.run();
-    bios_.write(result.message + "\n");
-}
-int Ccp::loop() {
-    bios_.write("ENIAC CP/M 2.2-style OS 0.1\n"
-                "CCP-like shell / BDOS-like file services / BIOS-like console\n"
-                "Educational compatibility layer; not Digital Research CP/M. Type HELP.\n");
-    std::string line;
-    while (bios_.write(prompt()), bios_.read_line(line)) {
-        if (!execute_line(line)) break;
-    }
-    return 0;
-}
-bool Ccp::execute_line(const std::string& raw) {
-    const std::string line = trim(raw);
-    if (line.empty()) return true;
-    const auto split = line.find_first_of(" \t");
-    const std::string command = upper(line.substr(0, split));
-    const std::string args = split == std::string::npos ? "" : trim(line.substr(split + 1));
-    std::string error;
-    if (command == "EXIT" || command == "BYE" || command == "QUIT") return false;
-    if (command == "HELP" || command == "?") { help(); return true; }
-    if (command == "VER") { bios_.write("ENIAC CP/M-style OS 0.1 (CP/M-inspired, not binary-compatible)\n"); return true; }
-    if (command == "CLS") { bios_.clear_screen(); return true; }
-    if (command == "ECHO") { bios_.write(args + "\n"); return true; }
-    if (command == "DIR") { directory(args); return true; }
-    if (command == "USER") {
-        unsigned user = 0;
-        try {
-            std::size_t used = 0; const auto parsed = std::stoul(args, &used);
-            if (used != args.size()) throw std::invalid_argument("trailing");
-            user = static_cast<unsigned>(parsed);
-        } catch (...) { bios_.write("Usage: USER 0..15\n"); return true; }
-        if (bdos_.set_user(user, error)) bios_.write("Current user area: " + std::to_string(user) + "\n");
-        else bios_.write(error + "\n");
-        return true;
-    }
-    if (command.size() == 2 && command[1] == ':') {
-        if (bdos_.set_drive(command[0], error)) bios_.write("Current drive: " + command + "\n");
-        else bios_.write(error + "\n");
-        return true;
-    }
-    if (command == "TYPE") {
-        if (args.empty()) { bios_.write("Usage: TYPE filename\n"); return true; }
-        auto contents = bdos_.read_file(args, error);
-        if (contents) { bios_.write(*contents); if (contents->empty() || contents->back() != '\n') bios_.newline(); }
-        else bios_.write(error + "\n");
-        return true;
-    }
-    if (command == "ERA" || command == "ERASE" || command == "DEL") {
-        if (args.empty()) { bios_.write("Usage: ERA filename\n"); return true; }
-        if (bdos_.delete_file(args, error)) bios_.write("Erased " + args + "\n");
-        else bios_.write(error + "\n");
-        return true;
-    }
-    if (command == "REN") {
-        const auto equal = args.find('=');
-        if (equal == std::string::npos) { bios_.write("Usage: REN newname=oldname\n"); return true; }
-        const auto new_name = trim(args.substr(0, equal));
-        const auto old_name = trim(args.substr(equal + 1));
-        if (bdos_.rename_file(old_name, new_name, error)) bios_.write("Renamed " + old_name + " to " + new_name + "\n");
-        else bios_.write(error + "\n");
-        return true;
-    }
-    if (command == "COPY") {
-        std::istringstream stream(args); std::string source, destination, extra;
-        if (!(stream >> source >> destination) || (stream >> extra)) { bios_.write("Usage: COPY source destination\n"); return true; }
-        if (bdos_.copy_file(source, destination, error)) bios_.write("Copied " + source + " to " + destination + "\n");
-        else bios_.write(error + "\n");
-        return true;
-    }
-    if (command == "RUN") {
-        if (args.empty()) { bios_.write("Usage: RUN program.EPR\n"); return true; }
-        run_program(args); return true;
-    }
-    if (command == "STAT") {
-        const auto entries = bdos_.directory();
-        std::uintmax_t bytes = 0; for (const auto& entry : entries) bytes += entry.bytes;
-        bios_.write("Drive " + std::string(1, bdos_.disk().drive()) + ":, user " +
-                    std::to_string(bdos_.disk().user()) + ", " + std::to_string(entries.size()) +
-                    " file(s), " + std::to_string(bytes) + " bytes in current area.\n");
-        return true;
-    }
-    bios_.write("Bad command or filename: " + command + " (type HELP)\n");
-    return true;
-}
-} // namespace cpm22

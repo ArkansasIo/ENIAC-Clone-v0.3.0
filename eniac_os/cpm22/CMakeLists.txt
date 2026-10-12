@@ -1,36 +1,26 @@
 cmake_minimum_required(VERSION 3.20)
-project(ENIACCPM22 VERSION 0.1.0 LANGUAGES CXX)
-
+project(ENIACCPM22 VERSION 0.2.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 option(CPM22_BUILD_TESTS "Build CP/M-style OS tests" ON)
-
-add_library(eniac_os_core
-    ../src/accumulator.cpp
-    ../src/program.cpp
-    ../src/machine.cpp
-    ../src/monitor.cpp
-)
+add_library(eniac_os_core ../src/accumulator.cpp ../src/program.cpp ../src/machine.cpp ../src/monitor.cpp)
 target_include_directories(eniac_os_core PUBLIC ../include)
-add_library(cpm22_core src/disk.cpp src/bdos.cpp src/bios.cpp src/ccp.cpp)
+add_library(cpm22_core src/disk.cpp src/bdos.cpp src/bios.cpp src/memory.cpp src/memory_editor.cpp src/ccp.cpp)
 target_include_directories(cpm22_core PUBLIC include ../include)
 target_link_libraries(cpm22_core PUBLIC eniac_os_core)
-
 if(MSVC)
-  target_compile_options(eniac_os_core PRIVATE /W4 /permissive-)
-  target_compile_options(cpm22_core PRIVATE /W4 /permissive-)
+ target_compile_options(eniac_os_core PRIVATE /W4 /permissive-)
+ target_compile_options(cpm22_core PRIVATE /W4 /permissive-)
 else()
-  target_compile_options(eniac_os_core PRIVATE -Wall -Wextra -Wpedantic)
-  target_compile_options(cpm22_core PRIVATE -Wall -Wextra -Wpedantic -Wconversion -Wshadow)
+ target_compile_options(eniac_os_core PRIVATE -Wall -Wextra -Wpedantic)
+ target_compile_options(cpm22_core PRIVATE -Wall -Wextra -Wpedantic -Wconversion -Wshadow)
 endif()
-
 add_executable(eniac_cpm22 src/main.cpp)
 target_link_libraries(eniac_cpm22 PRIVATE cpm22_core)
-
 if(CPM22_BUILD_TESTS)
-  enable_testing()
-  add_executable(cpm22_tests tests/test_main.cpp)
-  target_link_libraries(cpm22_tests PRIVATE cpm22_core)
-  add_test(NAME cpm22_tests COMMAND cpm22_tests)
+ enable_testing()
+ add_executable(cpm22_tests tests/test_main.cpp)
+ target_link_libraries(cpm22_tests PRIVATE cpm22_core)
+ add_test(NAME cpm22_tests COMMAND cpm22_tests)
 endif()
