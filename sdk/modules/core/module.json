@@ -1,0 +1,6 @@
+{
+  "id": "core",
+  "name": "Core Runtime",
+  "version": "5.2.0",
+  "submodules": ["types", "memory", "disk", "statements"]
+}

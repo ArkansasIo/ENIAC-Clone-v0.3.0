@@ -5,3 +5,7 @@ cmake-build-*/
 .DS_Store
 *.user
 *.log
+*.img
+*.bin
+*.o
+*.obj

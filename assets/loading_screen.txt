@@ -1,0 +1,15 @@
++----------------------------------------------------------+
+|                    FLOPPY 5.2                             |
+|             MODULAR DISK DEVELOPMENT KIT                  |
+|                                                          |
+|   [ BIOS ] ----> [ BOOT SECTOR ] ----> [ STAGE 2 ]       |
+|                                      (planned)            |
+|                                                          |
+|   CORE RUNTIME ............... READY (host scaffold)      |
+|   TYPE SYSTEM ................. READY                      |
+|   MEMORY TABLE ................ SIMULATED                  |
+|   DISK IMAGE BUILDER .......... DEMO                       |
+|   KERNEL LOADER ............... NOT IMPLEMENTED            |
+|                                                          |
+|   Starting developer console...                           |
++----------------------------------------------------------+

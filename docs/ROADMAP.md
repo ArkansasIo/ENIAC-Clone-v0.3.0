@@ -11,3 +11,6 @@
 
 ## Non-goals for the current version
 The current version is not a cycle-accurate electrical emulator and does not claim complete historical fidelity.
+
+## FLOPPY 5.2 roadmap
+See [FLOPPY52_ROADMAP.md](FLOPPY52_ROADMAP.md) for the FLOPPY 5.2 disk-development-kit plans.

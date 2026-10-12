@@ -1,10 +1,13 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.25)
 project(ENIACClone VERSION 0.3.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# ---------------------------------------------------------------------------
+# ENIAC-Clone v0.3.0
+# ---------------------------------------------------------------------------
 option(ENIAC_BUILD_TESTS "Build the test executable" ON)
 option(ENIAC_ENABLE_WARNINGS "Enable strict compiler warnings" ON)
 
@@ -43,4 +46,21 @@ if(ENIAC_BUILD_TESTS)
     add_executable(eniac_tests tests/test_main.cpp)
     target_link_libraries(eniac_tests PRIVATE eniac_core)
     add_test(NAME eniac_tests COMMAND eniac_tests)
+endif()
+
+# ---------------------------------------------------------------------------
+# FLOPPY 5.2 - Modular Disk Development Kit
+# ---------------------------------------------------------------------------
+add_library(floppy52_core src/core/ModuleRegistry.cpp src/core/MemoryTable.cpp src/core/Config.cpp)
+target_include_directories(floppy52_core PUBLIC include)
+target_compile_features(floppy52_core PUBLIC cxx_std_23)
+
+add_executable(floppy52 src/main.cpp)
+target_link_libraries(floppy52 PRIVATE floppy52_core)
+
+include(CTest)
+if(BUILD_TESTING)
+  add_executable(floppy52_tests tests/test_core.cpp)
+  target_link_libraries(floppy52_tests PRIVATE floppy52_core)
+  add_test(NAME floppy52_tests COMMAND floppy52_tests)
 endif()
