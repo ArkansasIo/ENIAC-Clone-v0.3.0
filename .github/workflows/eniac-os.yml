@@ -1,0 +1,31 @@
+name: ENIAC Program OS CI
+
+on:
+  push:
+    paths:
+      - "eniac_os/**"
+      - ".github/workflows/eniac-os.yml"
+  pull_request:
+    paths:
+      - "eniac_os/**"
+      - ".github/workflows/eniac-os.yml"
+  workflow_dispatch:
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install C++ build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake g++ make
+      - name: Configure
+        run: cmake -S eniac_os -B eniac_os/build -DCMAKE_BUILD_TYPE=Release
+      - name: Build
+        run: cmake --build eniac_os/build --parallel
+      - name: Test
+        run: ctest --test-dir eniac_os/build --output-on-failure
+      - name: Run sample program smoke test
+        run: |
+          printf 'run\nquit\n' | eniac_os/build/eniac_os eniac_os/examples/addition.epr
