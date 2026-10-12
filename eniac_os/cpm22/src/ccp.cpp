@@ -5,7 +5,9 @@
 #include <filesystem>
 #include <iomanip>
 #include <sstream>
-#include <string_view>
+#include <stdexcept>
+#include <string>
+#include <utility>
 
 namespace cpm22 {
 namespace {
